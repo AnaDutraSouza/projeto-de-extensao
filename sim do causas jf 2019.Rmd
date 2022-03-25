@@ -1,0 +1,131 @@
+---
+title: "Sistema de mortalidade de Juiz de Fora em 2019"
+author: "Ana Lucrécia"
+date: '2022-03-23'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(dplyr)
+library(treemap)
+library(read.dbc)
+library(ggplot2)
+
+setwd("C:\\Users\\anadu\\OneDrive\\Área de Trabalho\\Economia\\dados")
+
+library(read.dbc)
+dados_2019 <- read.dbc("DOMG2019.dbc")
+
+dados_sim_2019 <- dados_2019 %>%
+  select(CODMUNNATU, CAUSABAS, ESC, SEXO) %>%
+  na.omit()
+
+jf_sim_2019 <- dados_sim_2019[dados_sim_2019$CODMUNNATU == "313670",]
+esc <- as.numeric(as.character(jf_sim_2019$ESC))
+jf_sim_2019 <- cbind(jf_sim_2019, esc)
+
+jf_sim_2019$ESC <- NULL
+jf_sim_2019$SEXO <- factor(jf_sim_2019$SEXO, label = c("Masculino", "Feminino"), levels= c(1,2))
+
+
+```
+
+
+##Visão Geral
+
+Em Juiz de Fora, no ano de 2019, a base de dados registrou o total de 1.230 óbitos de uma base de dados com 4 observações, sendo elas, município, código do CID - 10 da causa do óbito, escolaridade e o sexo do indivíduo.
+
+```{r echo=FALSE}
+dim2019 <-dim(jf_sim_2019)
+dim2019
+```
+
+```{r echo=FALSE}
+total_sexo_2019 <- table(jf_sim_2019$SEXO)
+total_sexo_2019
+```
+
+
+Os gráficos abaixo, mostram as causas de mortalidade mais frequentes dentre o total de óbitos, e em relação ao sexo de indivíduo.
+
+
+```{r echo=FALSE}
+treemap_causas_2019 <- treemap(jf_sim_2019, index = c("CAUSABAS"), vSize = "esc", title = "Causas de mortalidade em Juiz de Fora no ano de 2019", border.col = "white", fontsize.labels = 10, fontfamily.labels = "mono")
+```
+
+
+```{r echo=FALSE}
+causas_masculino_2019 <- jf_sim_2019[jf_sim_2019$SEXO == "Masculino",]
+treemap_masc_2019 <- treemap(causas_masculino_2019, index = c("CAUSABAS"), vSize = "esc", title = "Causas de mortalidade mais frequentes no sexo masculino.", border.col="white", fontsize.labels = 10, fontfamily.labels = "mono")
+```
+
+```{r echo=FALSE}
+causas_feminino_2019 <- jf_sim_2019[jf_sim_2019$SEXO == "Feminino",]
+treemap_fem_2019 <- treemap(causas_feminino_2019, index = c("CAUSABAS"), vSize = "esc", title = "Causas de mortalidade mais frequentes no sexo feminino.", border.col="white", fontsize.labels = 10, fontfamily.labels = "mono")
+```
+
+
+As 5 causas mais frequentes mostradas, são relacionadas individualmente abaixo com a escolaridade do indivíduo, de forma a entender se as condições socio-econômicas estão associadas às causas de mortalidade evitáveis. 
+
+Sendo o número total das 7 causas de mortalidade mais frequentes:
+
+
+```{r echo=FALSE}
+freq2019 <- table(jf_sim_2019$CAUSABAS)
+sortfreq2019 <- sort(freq2019, decreasing = T)
+head(sortfreq2019,7)
+```
+
+A população de Juiz de Fora em 2019 era de 568.873, se excluírmos as causas de mortalidade por fatores externos, ou seja, acidentes, homicídios e suicídios, e definirmos a taxa de mortalidade para cada 100 mil habitantes, temos:
+
+
+```{r echo=FALSE}
+tabela_2019 <- data.frame(
+  Codigo = c("I10", "I219", "J189", "G309", "A419"),
+  Causa = c("Hipertensao", "Infarto", "Pneumonia", "Alzheimer", "Septicemia"),
+  Obitos = c(61, 51, 41, 28, 27),
+  Taxa_de_mortalidade = c(10.7230, 8.9651, 7.2072,4.9220,4.7462)
+)
+
+tabela_2019
+```
+
+
+##Análise do fator sócio-econômico
+
+Nos gráficos abaixo as causas de mortalidade apresentadas na tabela acima são relacionadas com a  escolaridade do indivíduo:
+
+```{r echo=FALSE}
+hipertensao_2019 <- jf_sim_2019[jf_sim_2019$CAUSABAS == "I10",]
+treemap_hipertensao_2019 <- treemap(hipertensao_2019, index = "esc", vSize = "esc", title = "Hipertensão",border.col = "white", fontsize.labels = 10, fontfamily.labels = "mono")
+
+```
+
+```{r echo=FALSE}
+infarto_2019 <- jf_sim_2019[jf_sim_2019$CAUSABAS == "I219",]
+
+treemap_infarto_2019 <- treemap(infarto_2019, index = "esc", vSize = "esc", title = "Infarto", border.col = "white",type = "index",fun.aggregate = "weighted.mean" , fontsize.labels = 10, fontfamily.labels = "mono")
+
+```
+
+```{r echo=FALSE}
+pneumonia_2019 <- jf_sim_2019[jf_sim_2019$CAUSABAS == "J189",]
+
+treemap_pneumonia_2019 <- treemap(pneumonia_2019, index = "esc", vSize= "esc", title = "Pneumonia", border.col = "white", fontsize.labels = 10, fontfamily.labels = "mono")
+```
+
+```{r echo=FALSE}
+alzheimer_2019 <- jf_sim_2019[jf_sim_2019$CAUSABAS == "G309",]
+treemap_alzheimer_201 <- treemap(alzheimer_2019, index = "esc", vSize = "esc", title = "Alzheimer", border.col = "white", fontsize.labels = 10, fontfamily.labels = "mono")
+```
+
+```{r echo=FALSE}
+septicemia_2019 <- jf_sim_2019[jf_sim_2019$CAUSABAS == "A419",]
+treemap_septicemia_2019 <- treemap(septicemia_2019, index = "esc", vSize = "esc", title = "Septicemia", border.col = "white", fontsize.labels = 10, fontfamily.labels = "mono")
+
+```
